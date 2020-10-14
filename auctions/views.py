@@ -3,12 +3,22 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
-
-from .models import User
-
+from django.core.exceptions import ObjectDoesNotExist
+from .models import *
+from .forms import *
+from django.contrib.auth.decorators import login_required
 
 def index(request):
-    return render(request, "auctions/index.html")
+    try:
+        listing = Listing.objects.all()
+        print(listing)
+    except Listing.DoesNotExists:#error
+        return render(request, "auctions/index.html")
+    
+    context = {
+        "listing" :listing
+    }
+    return render(request, "auctions/index.html", context)
 
 
 def login_view(request):
@@ -61,3 +71,49 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
+
+@login_required(login_url='login')
+def listing(request):
+    if request.method == "POST":
+        listingform = ListingForm(request.POST, request.FILES)
+        
+        if listingform.is_valid():
+            listing = listingform.save(commit=False)
+            
+            listing.owner = request.user
+            listing.save()
+
+    listingform = ListingForm()
+    context = {"listingform": listingform}
+    return render(request, "auctions/listing.html", context)
+
+def view_list(request, id):
+    listing = Listing.objects.get(id=id)
+    bidform = BidForm()
+    print(listing)
+
+    if request.user.is_authenticated:
+        try:
+            watchlist = Watchlist.objects.get(user = request.user, listing = listing)
+        except ObjectDoesNotExist:
+            watchlist = None
+    watchlist = None
+    context = {
+        "list": listing,
+        "bidform": bidform,
+        "watchlist": watchlist
+    }
+    return render(request, "auctions/list.html", context)
+
+@login_required(login_url='login')
+def addwatchlist(request, id):
+    listing = Listing.objects.get(id=id)
+    Watchlist.objects.create(user=request.user, listing=listing)
+    return HttpResponseRedirect(reverse('list', args=(id,)))
+
+@login_required(login_url='login')
+def remove(request, id):
+    listing = Listing.objects.get(id=id)
+    watch = Watchlist.objects.get(user=request.user, listing=listing)
+    watch.delete()
+    return HttpResponseRedirect(reverse('list', args=(id,)))

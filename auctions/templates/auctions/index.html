@@ -3,5 +3,15 @@
 {% block body %}
     <h2>Active Listings</h2>
 
-    TODO
+    {% if listing %}
+        {% for list in listing%}
+            <div>
+                <a href="{% url 'list' list.id %}"><h3>{{ list.title }}</h3></a>
+                <img src="{{ list.picture.url }}" >
+                <p>{{ list.details }}</p>
+                <p> <em>Price:</em> ${{ list.startingbid }}</p>
+                <p>{{list.created_at}}</p>
+            </div>
+        {% endfor %}
+    {% endif %}
 {% endblock %}
