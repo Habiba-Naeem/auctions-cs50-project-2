@@ -7,6 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from .models import *
 from .forms import *
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 def index(request):
     try:
@@ -98,10 +99,15 @@ def view_list(request, id):
         except ObjectDoesNotExist:
             watchlist = None
     watchlist = None
+    try:
+        bids = Bid.objects.filter(listing=listing).count()
+    except:
+        bids = 0
     context = {
         "list": listing,
         "bidform": bidform,
-        "watchlist": watchlist
+        "watchlist": watchlist,
+        "bids": bids
     }
     return render(request, "auctions/list.html", context)
 
@@ -117,3 +123,30 @@ def remove(request, id):
     watch = Watchlist.objects.get(user=request.user, listing=listing)
     watch.delete()
     return HttpResponseRedirect(reverse('list', args=(id,)))
+
+@login_required(login_url='login')
+def bid(request, id):
+    if request.method == "POST":
+        bidform = BidForm(request.POST)
+        listing = Listing.objects.get(id=id)
+        print(listing)
+        bids = Bid.objects.filter(user=request.user, listing=listing)
+
+        if bidform.is_valid():
+            bid = bidform.save(commit=False)
+            largest = 0
+            try:
+                for i in bids:
+                    if largest < i.bid:
+                        largest = i.bid
+            except:
+                pass
+            if bid.bid > largest and bid.bid > listing.startingbid:
+                bid.user = request.user
+                bid.listing = listing
+                bid.save()
+                return HttpResponseRedirect(reverse('list', args=(id,))) 
+            else:
+                messages.warning(request, "Please place larger bid") 
+
+    return HttpResponseRedirect(reverse('list', args=(id,)))    

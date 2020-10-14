@@ -1,6 +1,13 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+    {% if messages %}
+        {% for mess in messages %}
+        <div>
+            {{mess}}
+        </div>
+        {% endfor %}
+    {% endif %}
     <div>
         <h2>Listing: {{ list.title }}</h2>
         {% if request.user.is_authenticated %}
@@ -16,7 +23,9 @@
         <p>{{list.created_at}}</p>
     </div>
     <div>
-        <form>
+        <form method="POST" action="{% url 'bid' list.id%}">
+            {% csrf_token %}
+            <small>{{bids}} bid(s) placed so far.</small>
             {{ bidform.as_p}}
             <input type="submit" value="Place bid">
         </form>
