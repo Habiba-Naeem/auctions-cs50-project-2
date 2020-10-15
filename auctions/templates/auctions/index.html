@@ -1,9 +1,10 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    <h2>Active Listings</h2>
+    
 
     {% if listing %}
+        <h2>Active Listings</h2>
         {% for list in listing%}
             <div>
                 <a href="{% url 'list' list.id %}"><h3>{{ list.title }}</h3></a>
@@ -11,6 +12,17 @@
                 <p>{{ list.details }}</p>
                 <p> <em>Price:</em> ${{ list.startingbid }}</p>
                 <p>{{list.created_at}}</p>
+            </div>
+        {% endfor %}
+    {% elif watchlist %}
+        <h2>Watchlist</h2>
+        {% for list in watchlist %}
+            <div>
+                <a href="{% url 'list' list.listing.id %}"><h3>{{ list.listing.title }}</h3></a>
+                <img src="{{ list.listing.picture.url }}" >
+                <p>{{ list.listing.details }}</p>
+                <p> <em>Price:</em> ${{ list.listing.startingbid }}</p>
+                <p>{{list.listing.created_at}}</p>
             </div>
         {% endfor %}
     {% endif %}

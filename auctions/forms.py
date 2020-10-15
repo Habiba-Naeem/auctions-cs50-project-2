@@ -6,7 +6,7 @@ class ListingForm(ModelForm):
     # specify the name of model to use 
     class Meta: 
         model = Listing 
-        exclude = ['owner', 'created_at']
+        exclude = ['owner', 'created_at', 'status']
 
 class BidForm(ModelForm):
     class Meta:

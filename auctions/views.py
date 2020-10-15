@@ -11,7 +11,7 @@ from django.contrib import messages
 
 def index(request):
     try:
-        listing = Listing.objects.all()
+        listing = Listing.objects.filter(status=True)
         print(listing)
     except Listing.DoesNotExists:#error
         return render(request, "auctions/index.html")
@@ -91,25 +91,46 @@ def listing(request):
 def view_list(request, id):
     listing = Listing.objects.get(id=id)
     bidform = BidForm()
-    print(listing)
-
+    
     if request.user.is_authenticated:
         try:
             watchlist = Watchlist.objects.get(user = request.user, listing = listing)
         except ObjectDoesNotExist:
             watchlist = None
-    watchlist = None
+        if listing.owner == request.user and listing.status:
+            close = True
+        else:
+            close = False
+    else:
+        watchlist = None
+        close = False
+
     try:
         bids = Bid.objects.filter(listing=listing).count()
     except:
         bids = 0
+
     context = {
         "list": listing,
         "bidform": bidform,
         "watchlist": watchlist,
-        "bids": bids
+        "bids": bids,
+        "close": close
     }
     return render(request, "auctions/list.html", context)
+
+@login_required(login_url='login')
+def watchlist(request):
+    try:
+        watchlist = Watchlist.objects.filter(user=request.user)
+    except:
+        watchlist = None
+    
+    context = {
+        "watchlist" :watchlist
+    }
+    return render(request, "auctions/index.html", context)
+    #make sure  that watchlist are delted if list is closed
 
 @login_required(login_url='login')
 def addwatchlist(request, id):
@@ -129,7 +150,6 @@ def bid(request, id):
     if request.method == "POST":
         bidform = BidForm(request.POST)
         listing = Listing.objects.get(id=id)
-        print(listing)
         bids = Bid.objects.filter(user=request.user, listing=listing)
 
         if bidform.is_valid():
@@ -150,3 +170,47 @@ def bid(request, id):
                 messages.warning(request, "Please place larger bid") 
 
     return HttpResponseRedirect(reverse('list', args=(id,)))    
+
+def close(request, id):
+
+    listing = Listing.objects.get(id=id)
+    bids = Bid.objects.filter(user=request.user, listing=listing)
+    largest = 0
+    try:
+        for i in bids:
+            if largest < i.bid:
+                largest = i.bid
+            else:
+                largest = listing.startingbid
+    except:
+        pass
+    try:
+        user = Bid.objects.get(bid=largest)
+        listing.owner = user
+        
+    except ObjectDoesNotExist:
+        pass
+    listing.status = False
+    listing.save()
+    messages.success(request, "You have won") 
+    return HttpResponseRedirect(reverse('list', args=(id,)))
+
+def categories(request):
+    categories = Category.objects.all()
+    
+    context = {
+        "categories" :categories
+    }
+    return render(request, "auctions/category.html", context)
+
+def category(request, id):
+    try:
+        category = Category.objects.get(id=id)
+        listing = Listing.objects.filter(status=True, category=category)
+    except (Category.DoesNotExist, Listing.DoesNotExist):
+        listing = None
+    context = {
+        "listing" :listing
+    }
+    return render(request, "auctions/index.html", context)
+

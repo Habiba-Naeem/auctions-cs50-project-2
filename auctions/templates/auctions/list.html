@@ -10,6 +10,7 @@
     {% endif %}
     <div>
         <h2>Listing: {{ list.title }}</h2>
+        
         {% if request.user.is_authenticated %}
             {% if watchlist %}
                 <a href="{% url 'remove' list.id %}">Remove from watchlist</a>
@@ -17,6 +18,7 @@
                 <a href="{% url 'addwatchlist' list.id %}">Add to watchlist</a>
             {% endif %}
         {% endif %}
+        <br>
         <img src="{{ list.picture.url }}" >
         <p>{{ list.details }}</p>
         <p> <h3>${{ list.startingbid }}</h3></p>
@@ -37,4 +39,12 @@
             <li>Category: {{list.category}}</li>
         </ul>
     </div>
+    {% if close %}
+        <div>
+            <form method="POST" action="{% url 'close' list.id%}">
+                {% csrf_token %}
+                <input type="submit" value="Close list">
+            </form>
+        </div>
+    {% endif %}
 {% endblock %}

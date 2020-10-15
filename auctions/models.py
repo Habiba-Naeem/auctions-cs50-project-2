@@ -20,9 +20,9 @@ class Listing(models.Model):
     created_at = models.DateTimeField(default=datetime.datetime.now)
     category = models.OneToOneField(Category, on_delete=models.DO_NOTHING)
     startingbid = models.FloatField(default=0)
-
+    status = models.BooleanField(default=True)
     def __str__(self):
-        return f"{self.title},{self.created_at} {self.detail}, {self.owner}, {self.category}, {self.startingbid}, {self.picture}"
+        return f"{self.title},{self.created_at} {self.detail}, {self.owner}, {self.category}, {self.startingbid}, {self.picture}, {self.status}"
 
 class Bid(models.Model):
     bid = models.FloatField()
@@ -42,7 +42,7 @@ class Comment(models.Model):
 
 
 class Watchlist(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
 
     def __str__(self):
