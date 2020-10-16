@@ -7,9 +7,13 @@ class ListingForm(ModelForm):
     class Meta: 
         model = Listing 
         exclude = ['owner', 'created_at', 'status']
-
+        
 class BidForm(ModelForm):
     class Meta:
         model = Bid
         fields = ['bid']
 
+class CommentForm(ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['comment']

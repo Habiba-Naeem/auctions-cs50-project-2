@@ -41,11 +41,9 @@ def login_view(request):
     else:
         return render(request, "auctions/login.html")
 
-
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("index"))
-
 
 def register(request):
     if request.method == "POST":
@@ -123,16 +121,22 @@ def view_list(request, id):
     except:
         bids = 0
    
-    
+    try:
+        comments = Comment.objects.filter(listing=listing)
+    except:
+        comments = None
 
     bidform = BidForm()
+    commentform = CommentForm()
     context = {
         "list": listing,
         "bidform": bidform,
         "watchlist": watchlist,
         "bids": bids,
         "close": close,
-        "winner": winner
+        "winner": winner,
+        "commentform": commentform,
+        "comments": comments
     }
     return render(request, "auctions/list.html", context)
 
@@ -230,3 +234,14 @@ def category(request, id):
     }
     return render(request, "auctions/index.html", context)
 
+@login_required(login_url='login')
+def comment(request, id):
+    if request.method == "POST":
+        commentform = CommentForm(request.POST)
+        if commentform.is_valid():
+            comment = commentform.save(commit=False)
+            comment.user = request.user
+            listing = Listing.objects.get(id=id)
+            comment.listing = listing
+            comment.save()
+    return HttpResponseRedirect(reverse('list', args=(id,)))

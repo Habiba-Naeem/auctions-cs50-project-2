@@ -1,5 +1,5 @@
 {% extends "auctions/layout.html" %}
-
+{% load crispy_forms_tags %}
 {% block body %}
     {% if messages %}
         {% for mess in messages %}
@@ -24,9 +24,9 @@
             <h2>Listing: {{ list.title }}</h2>
             {% if request.user.is_authenticated %}
                 {% if watchlist %}
-                    <a href="{% url 'remove' list.id %}">Remove from watchlist</a>
+                    <a class="btn btn-secondary btn-lg active" role="button" aria-pressed="true" href="{% url 'remove' list.id %}">Remove from watchlist</a>
                 {% else %}
-                    <a href="{% url 'addwatchlist' list.id %}">Add to watchlist</a>
+                    <a  class="btn btn-secondary btn-lg active" role="button" aria-pressed="true" href="{% url 'addwatchlist' list.id %}">Add to watchlist</a>
                 {% endif %}  
             {% endif %} 
             <br>
@@ -39,8 +39,8 @@
             <form method="POST" action="{% url 'bid' list.id%}">
                 {% csrf_token %}
                 <small>{{bids}} bid(s) placed so far.</small>
-                {{ bidform.as_p}}
-                <input type="submit" value="Place bid">
+                {{ bidform|crispy}}
+                <input class="btn btn-primary" type="submit" value="Place bid">
             </form>
         </div>
         <div>
@@ -50,11 +50,28 @@
                 <li>Category: {{list.category}}</li>
             </ul>
         </div>
+        <div>
+            <h2>Comments</h2>
+            <form method="POST" action="{% url 'comment' list.id%}">
+                {% csrf_token %}
+                {{ commentform|crispy}}
+                <input class="btn btn-primary" type="submit" value="Comment">
+            </form>
+            {% if comments %}
+                {% for comment in comments %}
+                <ul>
+                    <li>{{ comment.comment }}
+                        <small><em>{{ comment.user }}</em></small>
+                    </li>
+                </ul>
+                {% endfor %}
+            {% endif %}
+        </div>
         {% if close %}
             <div>
                 <form method="POST" action="{% url 'close' list.id%}">
                     {% csrf_token %}
-                    <input type="submit" value="Close list">
+                    <input class="btn btn-primary" type="submit" value="Close list">
                 </form>
             </div>
         {% endif %}

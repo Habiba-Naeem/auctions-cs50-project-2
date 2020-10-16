@@ -4,9 +4,10 @@
     
 
     {% if listing %}
+
         <h2>Active Listings</h2>
         {% for list in listing%}
-            <div>
+            <div class="container-fluid">
                 <a href="{% url 'list' list.id %}"><h3>{{ list.title }}</h3></a>
                 <img src="{{ list.picture.url }}" >
                 <p>{{ list.details }}</p>
@@ -17,7 +18,7 @@
     {% elif watchlist %}
         <h2>Watchlist</h2>
         {% for list in watchlist %}
-            <div>
+            <div class="container-fluid">
                 <a href="{% url 'list' list.listing.id %}"><h3>{{ list.listing.title }}</h3></a>
                 <img src="{{ list.listing.picture.url }}" >
                 <p>{{ list.listing.details }}</p>
