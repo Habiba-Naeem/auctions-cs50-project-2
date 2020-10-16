@@ -89,19 +89,32 @@ def listing(request):
     return render(request, "auctions/listing.html", context)
 
 def view_list(request, id):
+    
     listing = Listing.objects.get(id=id)
-    bidform = BidForm()
     
     if request.user.is_authenticated:
         try:
             watchlist = Watchlist.objects.get(user = request.user, listing = listing)
         except ObjectDoesNotExist:
             watchlist = None
+
+        try:
+            winner = Winner.objects.get(winner = request.user, listing = listing)
+        except ObjectDoesNotExist:
+            try:
+                winner = Winner.objects.get(listing = listing)
+            except ObjectDoesNotExist:
+                winner = None
+        print(watchlist)
         if listing.owner == request.user and listing.status:
             close = True
         else:
             close = False
     else:
+        try:
+            winner = Winner.objects.get(listing = listing)
+        except ObjectDoesNotExist:
+            winner = None
         watchlist = None
         close = False
 
@@ -109,13 +122,17 @@ def view_list(request, id):
         bids = Bid.objects.filter(listing=listing).count()
     except:
         bids = 0
+   
+    
 
+    bidform = BidForm()
     context = {
         "list": listing,
         "bidform": bidform,
         "watchlist": watchlist,
         "bids": bids,
-        "close": close
+        "close": close,
+        "winner": winner
     }
     return render(request, "auctions/list.html", context)
 
@@ -130,17 +147,16 @@ def watchlist(request):
         "watchlist" :watchlist
     }
     return render(request, "auctions/index.html", context)
-    #make sure  that watchlist are delted if list is closed
 
 @login_required(login_url='login')
 def addwatchlist(request, id):
-    listing = Listing.objects.get(id=id)
+    listing = Listing.objects.get(id=id, status=True)
     Watchlist.objects.create(user=request.user, listing=listing)
     return HttpResponseRedirect(reverse('list', args=(id,)))
 
 @login_required(login_url='login')
 def remove(request, id):
-    listing = Listing.objects.get(id=id)
+    listing = Listing.objects.get(id=id, status=True)
     watch = Watchlist.objects.get(user=request.user, listing=listing)
     watch.delete()
     return HttpResponseRedirect(reverse('list', args=(id,)))
@@ -150,7 +166,7 @@ def bid(request, id):
     if request.method == "POST":
         bidform = BidForm(request.POST)
         listing = Listing.objects.get(id=id)
-        bids = Bid.objects.filter(user=request.user, listing=listing)
+        bids = Bid.objects.filter(listing=listing)
 
         if bidform.is_valid():
             bid = bidform.save(commit=False)
@@ -172,9 +188,8 @@ def bid(request, id):
     return HttpResponseRedirect(reverse('list', args=(id,)))    
 
 def close(request, id):
-
-    listing = Listing.objects.get(id=id)
-    bids = Bid.objects.filter(user=request.user, listing=listing)
+    listing = Listing.objects.get(id=id, status=True)
+    bids = Bid.objects.filter(listing=listing)
     largest = 0
     try:
         for i in bids:
@@ -185,14 +200,15 @@ def close(request, id):
     except:
         pass
     try:
-        user = Bid.objects.get(bid=largest)
-        listing.owner = user
-        
-    except ObjectDoesNotExist:
+        user = Bid.objects.get(bid=largest).user
+        winner = Winner.objects.create(winner=user, listing=listing)
+        listing.status = False
+        listing.save()
+        watch = Watchlist.objects.get(user=user, listing=listing)
+        watch.delete()
+    except ObjectDoesNotExist: 
         pass
-    listing.status = False
-    listing.save()
-    messages.success(request, "You have won") 
+    
     return HttpResponseRedirect(reverse('list', args=(id,)))
 
 def categories(request):

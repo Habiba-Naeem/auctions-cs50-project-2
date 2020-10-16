@@ -47,3 +47,11 @@ class Watchlist(models.Model):
 
     def __str__(self):
         return f"{self.user}, {self.listing}"
+    
+class Winner(models.Model):
+    winner = models.ForeignKey(User, on_delete=models.CASCADE)
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return f"{self.winner}, {self.listing}"
+    

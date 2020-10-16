@@ -8,43 +8,56 @@
         </div>
         {% endfor %}
     {% endif %}
-    <div>
-        <h2>Listing: {{ list.title }}</h2>
-        
-        {% if request.user.is_authenticated %}
-            {% if watchlist %}
-                <a href="{% url 'remove' list.id %}">Remove from watchlist</a>
-            {% else %}
-                <a href="{% url 'addwatchlist' list.id %}">Add to watchlist</a>
-            {% endif %}
-        {% endif %}
-        <br>
-        <img src="{{ list.picture.url }}" >
-        <p>{{ list.details }}</p>
-        <p> <h3>${{ list.startingbid }}</h3></p>
-        <p>{{list.created_at}}</p>
-    </div>
-    <div>
-        <form method="POST" action="{% url 'bid' list.id%}">
-            {% csrf_token %}
-            <small>{{bids}} bid(s) placed so far.</small>
-            {{ bidform.as_p}}
-            <input type="submit" value="Place bid">
-        </form>
-    </div>
-    <div>
-        <h2>Details</h2>
-        <ul>
-            <li>Listed by: {{list.owner}}</li>
-            <li>Category: {{list.category}}</li>
-        </ul>
-    </div>
-    {% if close %}
+    {% if winner %}
         <div>
-            <form method="POST" action="{% url 'close' list.id%}">
+            <h2>Listing: {{ list.title }}</h2>
+            {% if winner.winner == user %}
+                <h3>You have won!</h3>
+            {% endif %}
+            <img src="{{ list.picture.url }}" >
+            <p>{{ list.details }}</p>
+            <p> <h3>${{ list.startingbid }}</h3></p>
+            <p>{{list.created_at}}</p>
+        </div>
+    {% else %}
+        <div>    
+            <h2>Listing: {{ list.title }}</h2>
+            {% if request.user.is_authenticated %}
+                {% if watchlist %}
+                    <a href="{% url 'remove' list.id %}">Remove from watchlist</a>
+                {% else %}
+                    <a href="{% url 'addwatchlist' list.id %}">Add to watchlist</a>
+                {% endif %}  
+            {% endif %} 
+            <br>
+            <img src="{{ list.picture.url }}" >
+            <p>{{ list.details }}</p>
+            <p> <h3>${{ list.startingbid }}</h3></p>
+            <p>{{list.created_at}}</p>
+        </div>
+        <div>
+            <form method="POST" action="{% url 'bid' list.id%}">
                 {% csrf_token %}
-                <input type="submit" value="Close list">
+                <small>{{bids}} bid(s) placed so far.</small>
+                {{ bidform.as_p}}
+                <input type="submit" value="Place bid">
             </form>
         </div>
-    {% endif %}
+        <div>
+            <h2>Details</h2>
+            <ul>
+                <li>Listed by: {{list.owner}}</li>
+                <li>Category: {{list.category}}</li>
+            </ul>
+        </div>
+        {% if close %}
+            <div>
+                <form method="POST" action="{% url 'close' list.id%}">
+                    {% csrf_token %}
+                    <input type="submit" value="Close list">
+                </form>
+            </div>
+        {% endif %}
+    
+    {%endif%}
 {% endblock %}
