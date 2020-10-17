@@ -17,9 +17,9 @@
               <div class="navbar-nav">
                 <a class="nav-item nav-link active" href="{% url 'index' %}">Active Listings <span class="sr-only">(current)</span></a>
                 <a class="nav-item nav-link" href="{% url 'addlisting' %}">Create Listings</a>
-                <a class="nav-item nav-link" href="{% url 'categories' %}">Categories</a></a>
+                <a class="nav-item nav-link" href="{% url 'categories' %}">Categories</a>
                 {% if user.is_authenticated %}
-                
+                    <a class="nav-item nav-link" href="{% url 'closed' %}">Closed Listings</a>
                     <a class="nav-item nav-link" href="{% url 'allwatchlist' %}">Watchlist</a>
                     <p class="nav-item nav-link" >Signed in as <strong>{{ user.username }}</strong>.</p>
                     <a class="nav-item nav-link" href="{% url 'logout' %}">Log Out</a>

@@ -245,3 +245,16 @@ def comment(request, id):
             comment.listing = listing
             comment.save()
     return HttpResponseRedirect(reverse('list', args=(id,)))
+
+
+@login_required(login_url='login')
+def closed(request):
+    try:
+        listing = Listing.objects.filter(status=False)
+    except:
+        listing = None
+    
+    context = {
+        "listing" :listing
+    }
+    return render(request, "auctions/index.html", context)
